@@ -44,35 +44,31 @@ public class SecurityConfigurationV2 {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .headers().frameOptions().sameOrigin()
-            .and()
-            .csrf().disable()
+            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
+            .csrf(csrf -> csrf.disable())
             .cors(withDefaults())
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-            .formLogin().disable()
-            .httpBasic().disable()
-            .exceptionHandling()  // 추가
-            .authenticationEntryPoint(new MemberAuthenticationEntryPoint())  // 추가
-            .accessDeniedHandler(new MemberAccessDeniedHandler())            // 추가
-            .and()
-            .apply(new CustomFilterConfigurer())  // 추가
-            .and()
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .formLogin(form -> form.disable())
+            .httpBasic(basic -> basic.disable())
+            .exceptionHandling(exception -> exception  // 추가
+                    .authenticationEntryPoint(new MemberAuthenticationEntryPoint())
+                    .accessDeniedHandler(new MemberAccessDeniedHandler()))
+            .with(new CustomFilterConfigurer(), withDefaults())  // 추가
                 .authorizeHttpRequests(authorize -> authorize // url authorization 전체 추가
-//                        .antMatchers(HttpMethod.POST, "/*/members").permitAll()    // OAuth 2로 로그인하므로 회원 정보 등록 필요 없음.
-//                        .antMatchers(HttpMethod.PATCH, "/*/members/**").hasRole("USER") // OAuth 2로 로그인하므로 회원 정보 수정 필요 없음.
-//                        .antMatchers(HttpMethod.GET, "/*/members").hasRole("ADMIN")  // OAuth 2로 로그인하므로 회원 정보 수정 필요 없음.
-//                        .antMatchers(HttpMethod.GET, "/*/members/**").hasAnyRole("USER", "ADMIN")  // OAuth 2로 로그인하므로 회원 정보 수정 필요 없음.
-//                        .antMatchers(HttpMethod.DELETE, "/*/members/**").hasRole("USER") // OAuth 2로 로그인하므로 회원 정보 수정 필요 없음.
-                        .antMatchers(HttpMethod.POST, "/*/coffees").hasRole("ADMIN")
-                        .antMatchers(HttpMethod.PATCH, "/*/coffees/**").hasRole("ADMIN")
-                        .antMatchers(HttpMethod.GET, "/*/coffees/**").hasAnyRole("USER", "ADMIN")
-                        .antMatchers(HttpMethod.GET, "/*/coffees").permitAll()
-                        .antMatchers(HttpMethod.DELETE, "/*/coffees").hasRole("ADMIN")
-                        .antMatchers(HttpMethod.POST, "/*/orders").hasRole("USER")
-                        .antMatchers(HttpMethod.PATCH, "/*/orders").hasAnyRole("USER", "ADMIN")
-                        .antMatchers(HttpMethod.GET, "/*/orders/**").hasAnyRole("USER", "ADMIN")
-                        .antMatchers(HttpMethod.DELETE, "/*/orders").hasRole("USER")
+//                        .requestMatchers(HttpMethod.POST, "/*/members").permitAll()    // OAuth 2로 로그인하므로 회원 정보 등록 필요 없음.
+//                        .requestMatchers(HttpMethod.PATCH, "/*/members/**").hasRole("USER") // OAuth 2로 로그인하므로 회원 정보 수정 필요 없음.
+//                        .requestMatchers(HttpMethod.GET, "/*/members").hasRole("ADMIN")  // OAuth 2로 로그인하므로 회원 정보 수정 필요 없음.
+//                        .requestMatchers(HttpMethod.GET, "/*/members/**").hasAnyRole("USER", "ADMIN")  // OAuth 2로 로그인하므로 회원 정보 수정 필요 없음.
+//                        .requestMatchers(HttpMethod.DELETE, "/*/members/**").hasRole("USER") // OAuth 2로 로그인하므로 회원 정보 수정 필요 없음.
+                        .requestMatchers(HttpMethod.POST, "/*/coffees").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/*/coffees/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/*/coffees/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/*/coffees").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/*/coffees").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/*/orders").hasRole("USER")
+                        .requestMatchers(HttpMethod.PATCH, "/*/orders").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/*/orders/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/*/orders").hasRole("USER")
                         .anyRequest().permitAll()
             )
             .oauth2Login(oauth2 -> oauth2
@@ -95,7 +91,7 @@ public class SecurityConfigurationV2 {
     // 추가
     public class CustomFilterConfigurer extends AbstractHttpConfigurer<CustomFilterConfigurer, HttpSecurity> {
         @Override
-        public void configure(HttpSecurity builder) throws Exception {
+        public void configure(HttpSecurity builder) {
             JwtVerificationFilter jwtVerificationFilter = new JwtVerificationFilter(jwtTokenizer, authorityUtils);
 
             builder.addFilterAfter(jwtVerificationFilter, OAuth2LoginAuthenticationFilter.class); // (1)
