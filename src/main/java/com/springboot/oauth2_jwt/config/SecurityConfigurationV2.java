@@ -62,13 +62,14 @@ public class SecurityConfigurationV2 {
 //                        .requestMatchers(HttpMethod.DELETE, "/*/members/**").hasRole("USER") // OAuth 2로 로그인하므로 회원 정보 수정 필요 없음.
                         .requestMatchers(HttpMethod.POST, "/*/coffees").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/*/coffees/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/*/coffees/**").hasAnyRole("USER", "ADMIN")
+                        // 목록 조회는 누구나 가능합니다. "/*/coffees/**"는 "/v11/coffees"에도 맞기 때문에 permitAll 규칙을 먼저 둡니다.
                         .requestMatchers(HttpMethod.GET, "/*/coffees").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/*/coffees").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/*/coffees/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/*/coffees/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/*/orders").hasRole("USER")
-                        .requestMatchers(HttpMethod.PATCH, "/*/orders").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/*/orders/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/*/orders/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/*/orders").hasRole("USER")
+                        .requestMatchers(HttpMethod.DELETE, "/*/orders/**").hasRole("USER")
                         .anyRequest().permitAll()
             )
             .oauth2Login(oauth2 -> oauth2
